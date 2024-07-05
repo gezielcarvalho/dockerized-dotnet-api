@@ -40,8 +40,6 @@ public static class MockHttpMessageHandler<T>
             .ReturnsAsync(response);
         return handler;
     }
-
-
     
     internal static Mock<HttpMessageHandler> SetupBasicGetResourceResponse(T expectedResponse)
     {

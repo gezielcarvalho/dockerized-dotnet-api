@@ -39,7 +39,7 @@ namespace CloudCustomers.API
 
         private static void ConfigureServices(WebApplicationBuilder builder)
         {
-            builder.Services.Configure<UsersApiOptions>(builder.Configuration.GetSection("UsersApi"));
+            builder.Services.Configure<UsersApiOptions>(builder.Configuration.GetSection("UsersApiOptions"));
             builder.Services.AddTransient<IUsersService, UsersService>();
             builder.Services.AddHttpClient<IUsersService, UsersService>();
         }
