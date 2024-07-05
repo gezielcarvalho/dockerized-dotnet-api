@@ -1,30 +1,45 @@
 using CloudCustomers.API.Services;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-var app = builder.Build();
-
-ConfigureServices(app.Services.GetRequiredService<IServiceCollection>());
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+namespace CloudCustomers.API
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    public abstract class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
 
-app.UseHttpsRedirection();
+            // Add services to the container.
 
-app.Run();
-return;
+            builder.Services.AddControllers();
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+            
+            ConfigureServices(builder.Services);
 
-void ConfigureServices(IServiceCollection services)
-{
-    services.AddTransient<IUsersService, UsersService>();
-    services.AddHttpClient<IUsersService, UsersService>();
-}
+            var app = builder.Build();
+
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseAuthorization();
+
+
+            app.MapControllers();
+
+            app.Run();
+        }
+
+        private static void ConfigureServices(IServiceCollection services)
+        {
+           services.AddTransient<IUsersService, UsersService>();
+           services.AddHttpClient<IUsersService, UsersService>();
+        }
+    }
+}       
