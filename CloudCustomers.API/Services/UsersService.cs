@@ -1,6 +1,7 @@
 ﻿using System.Net;
+using CloudCustomers.API.Config;
 using CloudCustomers.API.Models;
-using Microsoft.AspNetCore.Mvc.Diagnostics;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace CloudCustomers.API.Services;
@@ -9,11 +10,11 @@ public interface IUsersService
 {
     public Task<List<User>?> GetUsers();
 }
-public class UsersService(HttpClient httpClient) : IUsersService
+public class UsersService(HttpClient httpClient, IOptions<UsersApiOptions> apiConfig) : IUsersService
 {
     public async Task<List<User>?> GetUsers()
     {
-        var response = await httpClient.GetAsync("https://jsonplaceholder.typicode.com/users");
+        var response = await httpClient.GetAsync(apiConfig.Value.Endpoint);
         var content = await response.Content.ReadAsStringAsync();
         return response.StatusCode == HttpStatusCode.NotFound ? null : JsonConvert.DeserializeObject<List<User>>(content);
     }

@@ -1,3 +1,4 @@
+using CloudCustomers.API.Config;
 using CloudCustomers.API.Services;
 
 namespace CloudCustomers.API
@@ -15,7 +16,7 @@ namespace CloudCustomers.API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             
-            ConfigureServices(builder.Services);
+            ConfigureServices(builder);
 
             var app = builder.Build();
 
@@ -36,10 +37,11 @@ namespace CloudCustomers.API
             app.Run();
         }
 
-        private static void ConfigureServices(IServiceCollection services)
+        private static void ConfigureServices(WebApplicationBuilder builder)
         {
-           services.AddTransient<IUsersService, UsersService>();
-           services.AddHttpClient<IUsersService, UsersService>();
+            builder.Services.Configure<UsersApiOptions>(builder.Configuration.GetSection("UsersApi"));
+            builder.Services.AddTransient<IUsersService, UsersService>();
+            builder.Services.AddHttpClient<IUsersService, UsersService>();
         }
     }
 }       

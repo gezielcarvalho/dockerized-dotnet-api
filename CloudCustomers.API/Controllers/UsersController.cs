@@ -11,7 +11,7 @@ namespace CloudCustomers.API.Controllers
 
         private readonly ILogger<UsersController> _logger = logger;
 
-        [HttpGet]
+        [HttpGet("GetUsers")]
         public async Task<IActionResult> GetUsers()
         {
             var result = await usersService.GetUsers();
@@ -19,7 +19,7 @@ namespace CloudCustomers.API.Controllers
             {
                 return NotFound();
             }
-            return Ok(await usersService.GetUsers());
+            return Ok(result);
         }
 
     }

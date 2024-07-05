@@ -1,10 +1,11 @@
 ﻿using System.Net;
+using CloudCustomers.API.Config;
 using CloudCustomers.API.Models;
 using CloudCustomers.API.Services;
 using CloudCustomers.UnitTests.Fixtures;
 using CloudCustomers.UnitTests.Helpers;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 
@@ -18,7 +19,12 @@ public class TestUsersService
         var expectedResponse = UsersFixture.GetUsers();
         var handlerMock = MockHttpMessageHandler<User>.SetupBasicGetResourceListResponse(expectedResponse);
         var httpClientMock = new Mock<HttpClient>(handlerMock.Object);
-        var systemUnderTest = new UsersService(httpClientMock.Object);
+        const string endpoint = "https://jsonplaceholder.typicode.com/users";
+        var config = Options.Create(new UsersApiOptions
+        {
+            Endpoint = endpoint
+        });
+        var systemUnderTest = new UsersService(httpClientMock.Object, config);
         // Act
         await systemUnderTest.GetUsers();
         // Assert
@@ -41,7 +47,12 @@ public class TestUsersService
         var expectedResponse = UsersFixture.GetUsers();
         var handlerMock = MockHttpMessageHandler<User>.SetupBasicGetResourceListResponse(expectedResponse);
         var httpClientMock = new Mock<HttpClient>(handlerMock.Object);
-        var systemUnderTest = new UsersService(httpClientMock.Object);
+        const string endpoint = "https://jsonplaceholder.typicode.com/users";
+        var config = Options.Create(new UsersApiOptions
+        {
+            Endpoint = endpoint
+        });
+        var systemUnderTest = new UsersService(httpClientMock.Object, config);
         var users = UsersFixture.GetUsers();
         var usersCount = users.Count;
         // Act
@@ -59,7 +70,12 @@ public class TestUsersService
         var expectedResponse = UsersFixture.GetUsers();
         var handlerMock = MockHttpMessageHandler<User>.SetupBasicGetResourceListResponse(expectedResponse);
         var httpClientMock = new Mock<HttpClient>(handlerMock.Object);
-        var systemUnderTest = new UsersService(httpClientMock.Object);
+        const string endpoint = "https://jsonplaceholder.typicode.com/users";
+        var config = Options.Create(new UsersApiOptions
+        {
+            Endpoint = endpoint
+        });
+        var systemUnderTest = new UsersService(httpClientMock.Object, config);
         var users = UsersFixture.GetUsers();
         var firstUser = users.First();
         var userCount = users.Count;
@@ -75,13 +91,8 @@ public class TestUsersService
             result.First().Name.Should().Be(firstUser.Name);
             result.First().Email.Should().Be(firstUser.Email);
             result.First().Phone.Should().Be(firstUser.Phone);
-            result.First().Address.Should().Be(firstUser.Address);
-            result.First().City.Should().Be(firstUser.City);
-            result.First().State.Should().Be(firstUser.State);
-            result.First().Zip.Should().Be(firstUser.Zip);
-            result.First().Country.Should().Be(firstUser.Country);
-            result.First().Password.Should().Be(firstUser.Password);
-            result.First().ConfirmPassword.Should().Be(firstUser.ConfirmPassword);
+            result.First().Address.Should().BeEquivalentTo(firstUser.Address);
+            result.First().Company.Should().BeEquivalentTo(firstUser.Company);
         }
     }
     
@@ -91,7 +102,12 @@ public class TestUsersService
         // Arrange
         var handlerMock = MockHttpMessageHandler<User>.SetupBasicErrorResponse(HttpStatusCode.NotFound);
         var httpClientMock = new Mock<HttpClient>(handlerMock.Object);
-        var systemUnderTest = new UsersService(httpClientMock.Object);
+        const string endpoint = "https://jsonplaceholder.typicode.com/users";
+        var config = Options.Create(new UsersApiOptions
+        {
+            Endpoint = endpoint
+        });
+        var systemUnderTest = new UsersService(httpClientMock.Object, config);
         // Act
         var result = await systemUnderTest.GetUsers();
         // Assert
@@ -104,7 +120,12 @@ public class TestUsersService
         // Arrange
         var handlerMock = MockHttpMessageHandler<User>.SetupBasicErrorResponse(HttpStatusCode.NotFound);
         var httpClientMock = new Mock<HttpClient>(handlerMock.Object);
-        var systemUnderTest = new UsersService(httpClientMock.Object);
+        const string endpoint = "https://jsonplaceholder.typicode.com/users";
+        var config = Options.Create(new UsersApiOptions
+        {
+            Endpoint = endpoint
+        });
+        var systemUnderTest = new UsersService(httpClientMock.Object, config);
         // Act
         var result = await systemUnderTest.GetUsers();
         // Assert
@@ -117,10 +138,44 @@ public class TestUsersService
         // Arrange
         var expectedResponse = UsersFixture.GetUsers();
         var handlerMock = MockHttpMessageHandler<User>.SetupBasicGetResourceListResponse(expectedResponse);        var httpClientMock = new Mock<HttpClient>(handlerMock.Object);
-        var systemUnderTest = new UsersService(httpClientMock.Object);
+        const string endpoint = "https://jsonplaceholder.typicode.com/users";
+        var config = Options.Create(new UsersApiOptions
+        {
+            Endpoint = endpoint
+        });
+        var systemUnderTest = new UsersService(httpClientMock.Object, config);
         // Act
         var result = await systemUnderTest.GetUsers();
         // Assert
         result.Should().HaveCount(expectedResponse.Count);
     }
+    
+    [Fact]
+    public async Task GetUsers_WhenCalled_InvokesConfiguredUrl()
+    {
+        // Arrange
+        var expectedResponse = UsersFixture.GetUsers();
+        const string endpoint = "https://jsonplaceholder.typicode.com/users";
+        var handlerMock = MockHttpMessageHandler<User>
+            .SetupBasicGetResourceListResponse(expectedResponse, endpoint);
+        var httpClient = new HttpClient(handlerMock.Object);
+        var config = Options.Create(new UsersApiOptions
+        {
+            Endpoint = endpoint
+        });
+        var systemUnderTest = new UsersService(httpClient, config);
+        // Act
+        await systemUnderTest.GetUsers();
+        // Assert
+        handlerMock
+            .Protected()
+            .Verify(
+                "SendAsync", 
+                Times.Exactly(1), 
+                ItExpr.Is<HttpRequestMessage>(
+                    req => req.RequestUri == new Uri(config.Value.Endpoint) && req.Method == HttpMethod.Get
+                ), 
+                ItExpr.IsAny<CancellationToken>());
+    }
+
 }

@@ -22,6 +22,27 @@ public static class MockHttpMessageHandler<T>
         return handler;
     }
     
+    internal static Mock<HttpMessageHandler> SetupBasicGetResourceListResponse(List<T> expectedResponse, string endpoint)
+    {
+        var response = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(JsonConvert.SerializeObject(expectedResponse))
+        };
+    
+        response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+        var handler = new Mock<HttpMessageHandler>();
+    
+        handler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync", 
+                ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get && req.RequestUri == new Uri(endpoint)), 
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(response);
+        return handler;
+    }
+
+
+    
     internal static Mock<HttpMessageHandler> SetupBasicGetResourceResponse(T expectedResponse)
     {
         var response = new HttpResponseMessage(HttpStatusCode.OK)
@@ -89,4 +110,6 @@ public static class MockHttpMessageHandler<T>
             .ReturnsAsync(response);
         return handler;
     }
+    
+    
 }

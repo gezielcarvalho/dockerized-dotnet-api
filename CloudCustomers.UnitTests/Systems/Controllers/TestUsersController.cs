@@ -65,12 +65,7 @@ public class TestUsersController
         usersResult?.First().Email.Should().Be(firstUser.Email);
         usersResult?.First().Phone.Should().Be(firstUser.Phone);
         usersResult?.First().Address.Should().Be(firstUser.Address);
-        usersResult?.First().City.Should().Be(firstUser.City);
-        usersResult?.First().State.Should().Be(firstUser.State);
-        usersResult?.First().Zip.Should().Be(firstUser.Zip);
-        usersResult?.First().Country.Should().Be(firstUser.Country);
-        usersResult?.First().Password.Should().Be(firstUser.Password);
-        usersResult?.First().ConfirmPassword.Should().Be(firstUser.ConfirmPassword);
+        usersResult?.First().Company.Should().Be(firstUser.Company);
     }
 
     [Fact]
