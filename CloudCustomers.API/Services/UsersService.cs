@@ -1,31 +1,21 @@
-﻿using CloudCustomers.API.Models;
+﻿using System.Net;
+using CloudCustomers.API.Models;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
+using Newtonsoft.Json;
 
 namespace CloudCustomers.API.Services;
 
 public interface IUsersService
 {
-    public Task<List<User>> GetUsers();
+    public Task<List<User>?> GetUsers();
 }
-public class UsersService: IUsersService
+public class UsersService(HttpClient httpClient) : IUsersService
 {
-    public async Task<List<User>>GetUsers()
+    public async Task<List<User>?> GetUsers()
     {
-        var list = new List<User>
-        {
-            new User(
-                "John Doe",
-                "john@doe.com",
-                "123-456-7890",
-                "123 Main St",
-                "Anytown",
-                "NY",
-                "12345",
-                "USA",
-                "password",
-                "password")
-        };
-        await Task.Delay(1000);
-        return list;
+        var response = await httpClient.GetAsync("https://api.example.com/users");
+        var content = await response.Content.ReadAsStringAsync();
+        return response.StatusCode == HttpStatusCode.NotFound ? null : JsonConvert.DeserializeObject<List<User>>(content);
     }
 }
 

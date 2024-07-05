@@ -1,3 +1,4 @@
+using CloudCustomers.API.Models;
 using CloudCustomers.API.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,8 +13,12 @@ namespace CloudCustomers.API.Controllers
         [HttpGet(Name = "GetUsers")]
         public async Task<IActionResult> GetUsers()
         {
-            await Task.Delay(1000);
-            return Ok(usersService.GetUsers());
+            var result = await usersService.GetUsers();
+            if (result is { Count: 0 })
+            {
+                return NotFound();
+            }
+            return Ok(await usersService.GetUsers());
         }
 
     }
