@@ -1,128 +1,276 @@
-﻿# .NET 8 Web API with TDD and Docker
+﻿# Dockerized .NET API - Cloud Customers
 
-This project demonstrates the development of a .NET 8 Web API using Test Driven Development (TDD) and Docker. The application is built from scratch, tested, and containerized for easy deployment and management across various environments, including on-premises and cloud platforms.
+This project is a .NET 8 Web API built with Test Driven Development (TDD) and Docker containerization. The CloudCustomers API demonstrates best practices in modern API development, including unit testing with xUnit, dependency injection, and containerized deployment.
 
 ## Table of Contents
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-- [Running Tests](#running-tests)
-- [Dockerizing the Application](#dockerizing-the-application)
-- [Health Check](#health-check)
-- [License](#license)
+
+- [Dockerized .NET API - Cloud Customers](#dockerized-net-api---cloud-customers)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Features](#features)
+  - [Technologies Used](#technologies-used)
+  - [Prerequisites](#prerequisites)
+  - [Getting Started](#getting-started)
+    - [Cloning the Repository](#cloning-the-repository)
+    - [Configuration](#configuration)
+    - [Running in Visual Studio Code](#running-in-visual-studio-code)
+    - [Building the Solution Manually](#building-the-solution-manually)
+  - [Running Tests](#running-tests)
+  - [Docker Deployment](#docker-deployment)
+    - [Using Docker](#using-docker)
+    - [Using Docker Compose](#using-docker-compose)
+  - [API Endpoints](#api-endpoints)
+    - [Get Users](#get-users)
+    - [Swagger Documentation](#swagger-documentation)
+  - [Health Check](#health-check)
+  - [Project Structure](#project-structure)
+  - [License](#license)
+
+## Overview
+
+The CloudCustomers API is a RESTful service that fetches and manages user data from an external API. It showcases:
+
+- Clean architecture with separation of concerns
+- Service layer abstraction with `IUsersService`
+- Dependency injection and configuration management
+- Comprehensive unit testing with mocked HTTP clients
+- Docker containerization with multi-stage builds
 
 ## Features
-- .NET 8 Web API development with TDD
-- Unit testing using xUnit
+
+- .NET 8 Web API with ASP.NET Core
+- Test Driven Development using xUnit
 - Dependency injection and inversion of control
 - SOLID design principles
-- REST API development
-- Docker containerization
-- Health check endpoint
+- RESTful API with HTTP controllers
+- Docker and Docker Compose support
+- Health check endpoint for monitoring
+- Swagger/OpenAPI documentation
+- Configuration-based external API integration
 
 ## Technologies Used
+
 - .NET 8
 - ASP.NET Core Web API
-- xUnit
-- HttpClient
-- Docker
+- xUnit & FluentAssertions
+- Moq for mocking
+- HttpClient for external API calls
+- Newtonsoft.Json for serialization
+- Docker & Docker Compose
+- Swagger/OpenAPI
 
 ## Prerequisites
+
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [Docker](https://www.docker.com/get-started)
-- [Visual Studio or Visual Studio Code](https://visualstudio.microsoft.com/)
+- [Visual Studio 2022 or Visual Studio Code](https://visualstudio.microsoft.com/)
 
 ## Getting Started
+
 ### Cloning the Repository
+
 ```bash
-git clone https://github.com/yourusername/dotnet8-webapi-tdd-docker.git
-cd dotnet8-webapi-tdd-docker
+git clone https://github.com/gezielcarvalho/dockerized-dotnet-api.git
+cd dockerized-dotnet-api
 ```
 
-### Setting Up the Solution
-1. Create a new solution:
-    ```bash
-    dotnet new sln -n MySolution
-    ```
+### Configuration
 
-2. Create and add a new Web API project:
-    ```bash
-    dotnet new webapi -n MyWebApi
-    dotnet sln add MyWebApi/MyWebApi.csproj
-    ```
+The API requires configuration for the external users API endpoint. Update `appsettings.Development.json`:
 
-3. Create and add a new xUnit test project:
-    ```bash
-    dotnet new xunit -n MyWebApi.Tests
-    dotnet sln add MyWebApi.Tests/MyWebApi.Tests.csproj
-    ```
+```json
+{
+  "UsersApiOptions": {
+    "Endpoint": "https://jsonplaceholder.typicode.com/users"
+  }
+}
+```
 
-4. Add a project reference from the test project to the Web API project:
-    ```bash
-    dotnet add MyWebApi.Tests/MyWebApi.Tests.csproj reference MyWebApi/MyWebApi.csproj
-    ```
+This configures the API to fetch user data from JSONPlaceholder, a free fake REST API for testing and prototyping.
+
+### Running in Visual Studio Code
+
+The project includes VS Code debug configurations for easy development:
+
+1. Open the project in VS Code
+2. Press `F5` or go to Run > Start Debugging
+3. Select `.NET Core Launch (web)` from the debug configurations
+4. The API will build, launch, and automatically open Swagger UI in your browser
+
+Available debug configurations:
+
+- **.NET Core Launch (web)** - Run locally with debugger
+- **.NET Core Attach** - Attach to running process
+- **Docker .NET Launch** - Run in Docker with debugging
+
+### Building the Solution Manually
+
+1. Restore dependencies:
+
+   ```bash
+   dotnet restore
+   ```
+
+2. Build the solution:
+
+   ```bash
+   dotnet build
+   ```
+
+3. Run the API locally:
+   ```bash
+   dotnet run --project CloudCustomers.API
+   ```
+
+The API will be available at:
+
+- HTTPS: `https://localhost:7251`
+- HTTP: `http://localhost:5018`
 
 ## Running Tests
-To run the unit tests:
+
+To run all unit tests:
+
 ```bash
 dotnet test
 ```
 
-## Dockerizing the Application
-1. **Create a Dockerfile:**
-    ```Dockerfile
-    # Use the official .NET 8 SDK image for building the app
-    FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-    WORKDIR /app
+To run tests with detailed output:
 
-    # Copy the project files and restore dependencies
-    COPY *.csproj .
-    RUN dotnet restore
+```bash
+dotnet test --verbosity normal
+```
 
-    # Copy the remaining files and build the app
-    COPY . .
-    RUN dotnet publish -c Release -o out
+## Docker Deployment
 
-    # Use the official .NET runtime image for running the app
-    FROM mcr.microsoft.com/dotnet/aspnet:8.0
-    WORKDIR /app
-    COPY --from=build /app/out .
+### Using Docker
 
-    # Set the entry point for the container
-    ENTRYPOINT ["dotnet", "MyWebApi.dll"]
-    ```
+1. **Build the Docker image:**
 
-2. **Build the Docker image:**
-    ```bash
-    docker build -t mywebapi:latest .
-    ```
+   ```bash
+   docker build -t cloud-customers-api:latest .
+   ```
 
-3. **Run a Docker container:**
-    ```bash
-    docker run -d -p 8080:80 --name mywebapi_container mywebapi:latest
-    ```
+2. **Run a Docker container:**
+   ```bash
+   docker run -d -p 5000:5000 -p 5001:5001 --name cloud-customers cloud-customers-api:latest
+   ```
 
-4. **Test locally in the browser:**
-   Navigate to `http://localhost:8080` to access the API.
+### Using Docker Compose
+
+1. **Start the application:**
+
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Stop the application:**
+
+   ```bash
+   docker-compose down
+   ```
+
+3. **View logs:**
+   ```bash
+   docker-compose logs -f
+   ```
+
+The containerized API will be available at `http://localhost:5000`.
+
+## API Endpoints
+
+### Get Users
+
+- **Endpoint:** `GET /Users/GetUsers`
+- **Description:** Retrieves a list of users from the configured external API (JSONPlaceholder)
+- **Response:**
+  - `200 OK` - Returns list of users with id, name, username, email, address, phone, website, and company information
+  - `404 Not Found` - No users found
+
+Example response:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Leanne Graham",
+    "username": "Bret",
+    "email": "Sincere@april.biz",
+    "address": {
+      "street": "Kulas Light",
+      "suite": "Apt. 556",
+      "city": "Gwenborough",
+      "zipcode": "92998-3874",
+      "geo": { "lat": "-37.3159", "lng": "81.1496" }
+    },
+    "phone": "1-770-736-8031 x56442",
+    "website": "hildegard.org",
+    "company": {
+      "name": "Romaguera-Crona",
+      "catchPhrase": "Multi-layered client-server neural-net",
+      "bs": "harness real-time e-markets"
+    }
+  }
+]
+```
+
+### Swagger Documentation
+
+Access the interactive API documentation at:
+
+- **Development (local):** `https://localhost:7251/swagger`
+- **HTTP:** `http://localhost:5018/swagger`
 
 ## Health Check
-1. **Add a health check endpoint in `Startup.cs` or `Program.cs`:**
-    ```csharp
-    app.UseEndpoints(endpoints =>
-    {
-        endpoints.MapControllers();
-        endpoints.MapHealthChecks("/health");
-    });
-    ```
 
-2. **Rebuild the Docker image:**
-    ```bash
-    docker build -t mywebapi:latest .
-    ```
+The API includes a health check endpoint for monitoring and container orchestration.
 
-3. **Test the health check endpoint in the browser:**
-   Navigate to `http://localhost:8080/health` to verify the health check.
+**Endpoint:** `GET /health`
+
+Test the health check:
+
+```bash
+curl https://localhost:7251/health
+# or
+curl http://localhost:5018/health
+```
+
+## Project Structure
+
+```
+dockerized-dotnet-api/
+├── .vscode/                          # VS Code debug and task configurations
+│   ├── launch.json                   # Debug configurations
+│   └── tasks.json                    # Build, test, and Docker tasks
+├── CloudCustomers.API/               # Main API project
+│   ├── Config/
+│   │   └── UsersApiOptions.cs        # Configuration model for external API
+│   ├── Controllers/
+│   │   └── UsersController.cs        # API controller
+│   ├── Models/
+│   │   ├── User.cs                   # User model
+│   │   ├── Address.cs                # Address model
+│   │   ├── Company.cs                # Company model
+│   │   └── Geo.cs                    # Geo-location model
+│   ├── Services/
+│   │   └── UsersService.cs           # Business logic for user operations
+│   ├── appsettings.Development.json  # Development configuration
+│   └── Program.cs                    # Application entry point
+├── CloudCustomers.UnitTests/         # Unit test project
+│   ├── Fixtures/
+│   │   └── UsersFixture.cs           # Test data fixtures
+│   ├── Helpers/
+│   │   └── MockHttpMessageHandler.cs # HTTP mocking utilities
+│   └── Systems/
+│       ├── Controllers/
+│       │   └── TestUsersController.cs
+│       └── Services/
+│           └── TestUsersService.cs
+├── Dockerfile                        # Multi-stage Docker build
+├── docker-compose.yaml               # Docker Compose configuration
+└── README.md                         # This file
+```
 
 ## License
+
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.

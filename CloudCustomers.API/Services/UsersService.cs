@@ -14,7 +14,7 @@ public class UsersService(HttpClient httpClient, IOptions<UsersApiOptions> apiCo
 {
     public async Task<List<User>?> GetUsers()
     {
-        var response = await httpClient.GetAsync(apiConfig.Value.Endpoint);
+        var response = await httpClient.GetAsync("");
         var content = await response.Content.ReadAsStringAsync();
         return response.StatusCode == HttpStatusCode.NotFound ? null : JsonConvert.DeserializeObject<List<User>>(content);
     }

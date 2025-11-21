@@ -1,5 +1,6 @@
 using CloudCustomers.API.Config;
 using CloudCustomers.API.Services;
+using Microsoft.Extensions.Options;
 
 namespace CloudCustomers.API
 {
@@ -45,7 +46,11 @@ namespace CloudCustomers.API
         {
             builder.Services.Configure<UsersApiOptions>(builder.Configuration.GetSection("UsersApiOptions"));
             builder.Services.AddTransient<IUsersService, UsersService>();
-            builder.Services.AddHttpClient<IUsersService, UsersService>();
+            builder.Services.AddHttpClient<IUsersService, UsersService>((serviceProvider, client) =>
+            {
+                var config = serviceProvider.GetRequiredService<IOptions<UsersApiOptions>>().Value;
+                client.BaseAddress = new Uri(config.Endpoint);
+            });
         }
     }
 }       
